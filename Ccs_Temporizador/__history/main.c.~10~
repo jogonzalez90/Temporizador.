@@ -1,0 +1,222 @@
+#include <16F84A.h>         // Incluye el header del PIC16F84A
+#include <lcd.c> //Librería lcd.c.
+#fuses XT, NOWDT, NOPROTECT // Configuraciones del PIC: Oscilador externo XT, Sin Watchdog Timer, Sin protección de código
+#use delay(clock=4000000)   // Define el uso de un cristal de 4 MHz
+
+// Definiciones para los pines
+#define LCD_RS PIN_B0
+#define LCD_EN PIN_B1
+#define LCD_D4 PIN_B2
+#define LCD_D5 PIN_B3
+#define LCD_D6 PIN_B4
+#define LCD_D7 PIN_B5
+
+#define BTN_MIN_INC PIN_A0         // Botón para incrementar minutos
+#define BTN_HOUR_INC PIN_A1        // Botón para incrementar horas
+#define BTN_START PIN_A2           // Botón para iniciar/parar temporizador
+#define BTN_MIN_DEC PIN_A3         // Botón para decrementar minutos
+#define BTN_HOUR_DEC PIN_A4        // Botón para decrementar horas
+#define OUTPUT_PIN PIN_B6          // Pin de salida para el control de potencia
+
+// Variables globales
+unsigned char minutos = 0;
+unsigned char horas = 0;
+unsigned char estado = 0;       // 0 = parado, 1 = corriendo
+
+// Prototipos de funciones
+//void lcd_init();
+//void lcd_cmd(unsigned char cmd);
+//void lcd_data(unsigned char data);
+//void lcd_clear();
+//void lcd_setCursor(unsigned char row, unsigned char col);
+//void lcd_print(const char *str);
+void display_tiempo();
+void incrementar_minuto();
+void incrementar_hora();
+void decrementar_minuto();
+void decrementar_hora();
+void iniciar_parar();
+void esperar_1_minuto();
+void decrementar_tiempo();
+void activar_salida();
+
+void main(void) {
+    set_tris_a(0x1F);    // RA0-RA4 como entradas (botones)
+    set_tris_b(0x00);    // Todo el puerto B como salida (LCD y control de potencia)
+    output_b(0x00);      // Limpiar puerto B
+
+    lcd_init();          // Inicializar LCD
+    lcd_putc("\f" ) ; //Borra pantalla.
+    //lcd_clear();         // Limpiar LCD
+    lcd_gotoxy(5,1); //Sitúa el cursor en 5 columna, 1 fila.
+    lcd_putc("Temporizador");  // Mensaje inicial
+    //lcd_print("Temporizador");  // Mensaje inicial
+    delay_ms(2000);      // Esperar 2 segundos
+
+    while (1) {
+        display_tiempo();  // Mostrar horas y minutos en LCD
+
+        if (input(BTN_MIN_INC)) {     // Si se presiona el botón de incrementar minutos
+            delay_ms(200);            // Anti-rebote
+            incrementar_minuto();
+        }
+
+        if (input(BTN_HOUR_INC)) {    // Si se presiona el botón de incrementar horas
+            delay_ms(200);            // Anti-rebote
+            incrementar_hora();
+        }
+
+        if (input(BTN_MIN_DEC)) {     // Si se presiona el botón de decrementar minutos
+            delay_ms(200);            // Anti-rebote
+            decrementar_minuto();
+        }
+
+        if (input(BTN_HOUR_DEC)) {    // Si se presiona el botón de decrementar horas
+            delay_ms(200);            // Anti-rebote
+            decrementar_hora();
+        }
+
+        if (input(BTN_START)) {       // Si se presiona el botón de inicio/parada
+            delay_ms(200);            // Anti-rebote
+            iniciar_parar();
+        }
+
+        if (estado == 1) {      // Si el temporizador está corriendo
+            esperar_1_minuto(); // Esperar 1 minuto
+            decrementar_tiempo();  // Disminuir el tiempo
+
+            if (horas == 0 && minutos == 0) {
+                activar_salida();  // Activar salida si llega a cero
+                estado = 0;        // Parar temporizador
+            }
+        }
+    }
+}
+
+// -----------------------
+// Funciones del LCD
+// -----------------------
+/*
+void lcd_init() {
+    output_b(0x00);       // Limpiar puerto B
+    lcd_cmd(0x02);        // Modo 4 bits
+    lcd_cmd(0x28);        // 2 líneas, 5x8 matrix
+    lcd_cmd(0x0C);        // Encender display, cursor apagado
+    lcd_cmd(0x06);        // Modo de incremento de cursor
+    lcd_cmd(0x01);        // Limpiar display
+}
+
+void lcd_cmd(unsigned char cmd) {
+    output_b((output_b() & 0x0F) | (cmd & 0xF0));  // Parte alta
+    output_low(LCD_RS);
+    output_high(LCD_EN);
+    delay_ms(2);
+    output_low(LCD_EN);
+
+    output_b((output_b() & 0x0F) | (cmd << 4));    // Parte baja
+    output_high(LCD_EN);
+    delay_ms(2);
+    output_low(LCD_EN);
+}
+
+void lcd_data(unsigned char data) {
+    output_b((output_b() & 0x0F) | (data & 0xF0)); // Parte alta
+    output_high(LCD_RS);
+    output_high(LCD_EN);
+    delay_ms(2);
+    output_low(LCD_EN);
+
+    output_b((output_b() & 0x0F) | (data << 4));   // Parte baja
+    output_high(LCD_EN);
+    delay_ms(2);
+    output_low(LCD_EN);
+}
+
+void lcd_clear() {
+    lcd_cmd(0x01);  // Limpiar pantalla
+}
+
+void lcd_setCursor(unsigned char row, unsigned char col) {
+    unsigned char pos = (row == 1) ? 0x80 + col : 0xC0 + col;
+    lcd_cmd(pos);
+}
+
+void lcd_print(const char *str) {
+    while (*str) {
+        lcd_data(*str++);
+    }
+}
+*/
+// -----------------------
+// Funciones del temporizador
+// -----------------------
+void display_tiempo() {
+    lcd_clear();
+    lcd_setCursor(1, 0);
+    lcd_print("Horas: ");
+    lcd_data(horas / 10 + '0');
+    lcd_data(horas % 10 + '0');
+    
+    lcd_setCursor(2, 0);
+    lcd_print("Min: ");
+    lcd_data(minutos / 10 + '0');
+    lcd_data(minutos % 10 + '0');
+}
+
+void incrementar_minuto() {
+    if (minutos < 59) {
+        minutos++;
+    } else {
+        minutos = 0;
+    }
+}
+
+void decrementar_minuto() {
+    if (minutos > 0) {
+        minutos--;
+    } else if (horas > 0) {
+        minutos = 59;
+        decrementar_hora();
+    }
+}
+
+void incrementar_hora() {
+    if (horas < 23) {
+        horas++;
+    } else {
+        horas = 0;
+    }
+}
+
+void decrementar_hora() {
+    if (horas > 0) {
+        horas--;
+    }
+}
+
+void iniciar_parar() {
+    estado = !estado;   // Alterna entre iniciar y parar
+}
+
+void esperar_1_minuto() {
+    for (int i = 0; i < 60; i++) {
+        delay_ms(1000);   // Retardo de 1 segundo
+    }
+}
+
+void decrementar_tiempo() {
+    if (minutos > 0) {
+        minutos--;
+    } else if (horas > 0) {
+        horas--;
+        minutos = 59;
+    }
+}
+
+void activar_salida() {
+    output_high(OUTPUT_PIN);  // Activar el pin de salida
+    delay_ms(5000);           // Mantenerlo encendido por 5 segundos
+    output_low(OUTPUT_PIN);   // Apagar la salida
+}
+
+

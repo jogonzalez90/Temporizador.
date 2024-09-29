@@ -1,0 +1,100 @@
+004-005 @READ_PROGRAM_MEMORY8.P1
+006     lcd
+006     lcdlat
+009-00A @READ_PROGRAM_MEMORY8.P1
+00C     @SCRATCH
+00D     @SCRATCH
+00D     _RETURN_
+00E     @SCRATCH
+00F     @SCRATCH
+010     minutos
+011     horas
+012     estado
+013     esperar_1_minuto.i
+013     lcd_init.i
+013     @PRINTF_U_527.P1
+013     MAIN.@SCRATCH1
+013     display_tiempo.@SCRATCH1
+014     @PRINTF_U_527.P1
+014-017 lcd_init.LCD_INIT_STRING
+014     esperar_1_minuto.@SCRATCH1
+015     lcd_putc.c
+015     @DIV88.P1
+016     @DIV88.P1
+016     lcd_gotoxy.x
+017     lcd_gotoxy.y
+017     @DIV88.@SCRATCH1
+018     @delay_ms1.P1
+018     lcd_gotoxy.address
+018     lcd_init.@SCRATCH1
+019     lcd_gotoxy.@SCRATCH1
+01A     lcd_send_byte.address
+01B     lcd_send_byte.n
+01C     lcd_read_byte.low
+01C     lcd_send_byte.@SCRATCH1
+01D     lcd_send_nibble.n
+01D     lcd_read_byte.high
+01E     lcd_read_byte.@SCRATCH1
+086     lcdtris
+
+ROM Allocation:
+000004  @const553.call
+00000A  @const554.call
+00001E  @const555.call
+000033  @const557.call
+000047  @const558.call
+000058  @const560.call
+000068  @const567.call
+000076  @delay_ms1
+00008A  lcd_send_nibble
+000096  lcd_read_nibble
+00009C  lcd_send_byte
+0000A2  lcd_read_byte
+0000DC  lcd_init
+000117  lcd_gotoxy
+000129  lcd_putc
+000155  @DIV88
+00016A  @PRINTF_U_527
+00019F  display_tiempo
+0001C9  incrementar_minuto
+0001D1  incrementar_hora
+0001D9  decrementar_hora
+0001DD  decrementar_minuto
+0001E9  iniciar_parar
+0001FC  esperar_1_minuto
+00020B  decrementar_tiempo
+000217  MAIN
+000217  @cinit1
+00021D  @cinit2
+
+Project Directory:
+    C:\disco_e\Proyectos_pic\Temporizador\Ccs_Temporizador\
+
+Project Files:
+    main.c                                                  [29-sept.-24 12:30  CRC=79E59904]
+    ..\..\..\..\Program Files (x86)\PICC\Devices\16F84A.h   [12-nov.-13 14:34  CRC=4E09ACDB]
+    ..\..\..\..\Program Files (x86)\PICC\Drivers\lcd.c      [19-sept.-13 15:38  CRC=D1A6378A]
+
+Source signature=6B3BB4F3
+
+Units:
+    main (main)
+
+Compiler Settings:
+    Processor:      PIC16F84A
+    Pointer Size:   8
+    Opt Level:      9
+    Short,Int,Long: UNSIGNED: 1,8,16
+    Float,Double:   32,32
+
+Output Files:
+    XREF file:   main.xsym
+    Errors:      main.err
+    Ext Symbols: main.esym
+    INHX8:       main.hex
+    Symbols:     main.sym
+    List:        main.lst
+    Debug/COFF:  main.cof
+    Project:     main.ccspjt
+    Call Tree:   main.tre
+    Statistics:  main.STA
